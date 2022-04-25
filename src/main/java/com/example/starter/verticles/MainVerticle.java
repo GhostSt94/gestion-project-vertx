@@ -1,11 +1,12 @@
 package com.example.starter.verticles;
 
+import com.example.starter.handler.AuthHandler;
+import com.example.starter.handler.ClientsHandler;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.file.FileSystem;
 import io.vertx.core.http.HttpMethod;
-import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.bridge.BridgeEventType;
 import io.vertx.ext.bridge.PermittedOptions;
@@ -47,7 +48,9 @@ public class MainVerticle extends AbstractVerticle {
     router.route().handler(BodyHandler.create());
     router.route().handler(CorsHandler.create("http://localhost:8080")
       .allowedMethod(HttpMethod.POST)
-      .allowedMethod(HttpMethod.GET));
+      .allowedMethod(HttpMethod.GET)
+      .allowedMethod(HttpMethod.PUT)
+      .allowedMethod(HttpMethod.DELETE));
 
     //receive and save facture file in resources & DB (file_name)
     router.post("/facture/save/:factureId").handler(ctx -> {
@@ -80,7 +83,6 @@ public class MainVerticle extends AbstractVerticle {
         }
       }
     });
-
     //receive and save project file in resources & DB (file_name)
     router.post("/project/save/:projectId").handler(ctx -> {
       String project_id=ctx.pathParam("projectId");
@@ -123,6 +125,17 @@ public class MainVerticle extends AbstractVerticle {
       String file_name=ctx.pathParam("fileName");
       ctx.response().sendFile(PATH_PROJECT_FILES+file_name);
     });
+
+    //Auth
+    router.post("/auth/register").handler(AuthHandler::register);
+    router.post("/auth/login").handler(AuthHandler::login);
+
+    //clients
+    router.get("/clients").handler(ClientsHandler::clients);
+    router.post("/clients").handler(ClientsHandler::addClient);
+    router.get("/clients/:id").handler(ClientsHandler::getClient);
+    router.put("/clients/:id").handler(ClientsHandler::updateClient);
+    router.delete("/clients/:id").handler(ClientsHandler::deleteClient);
 
     //get all projects from DB
     eb.consumer("get.project.all",msg -> {
@@ -237,16 +250,9 @@ public class MainVerticle extends AbstractVerticle {
         }
       });
     });
-    //get list of clients
-    eb.consumer("get.client.all",msg->{
-      eb.request("get.client.all.db","",res -> {
-        if (res.succeeded()){
-          msg.reply(res.result().body());
-        }else {
-          msg.fail(404,"Error");
-        }
-      });
-    });
+
+
+
 
     vertx.createHttpServer().requestHandler(router).listen(8888, http -> {
       if (http.succeeded()) {
