@@ -16,7 +16,7 @@
     <maven-surefire-plugin.version>2.22.2</maven-surefire-plugin.version>
     <exec-maven-plugin.version>3.0.0</exec-maven-plugin.version>
 
-    <vertx.version>4.3.0-SNAPSHOT</vertx.version>
+    <vertx.version>4.2.7-SNAPSHOT</vertx.version>
     <junit-jupiter.version>5.7.0</junit-jupiter.version>
 
     <main.verticle>com.example.starter.verticles.MainVerticle</main.verticle>
@@ -38,7 +38,13 @@
   <dependencies>
     <dependency>
       <groupId>io.vertx</groupId>
+      <artifactId>vertx-core</artifactId>
+      <version>4.2.7</version>
+    </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
       <artifactId>vertx-web</artifactId>
+      <version>4.2.7</version>
     </dependency>
 
     <dependency>
@@ -49,7 +55,7 @@
     <dependency>
       <groupId>io.vertx</groupId>
       <artifactId>vertx-mongo-client</artifactId>
-      <version>4.2.6</version>
+      <version>4.2.7</version>
     </dependency>
     <dependency>
       <groupId>io.vertx</groupId>

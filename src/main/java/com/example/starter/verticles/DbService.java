@@ -1,19 +1,17 @@
 package com.example.starter.verticles;
 
 import io.vertx.core.AbstractVerticle;
+import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.auth.mongo.MongoAuthentication;
-import io.vertx.ext.auth.mongo.MongoAuthenticationOptions;
-import io.vertx.ext.auth.mongo.MongoAuthorizationOptions;
-import io.vertx.ext.auth.mongo.MongoUserUtil;
+import io.vertx.ext.auth.authentication.UsernamePasswordCredentials;
+import io.vertx.ext.auth.mongo.*;
 import io.vertx.ext.mongo.FindOptions;
 import io.vertx.ext.mongo.MongoClient;
 
 public class DbService extends AbstractVerticle {
-
   @Override
   public void start(Promise<Void> startPromise) throws Exception {
 
@@ -271,16 +269,17 @@ public class DbService extends AbstractVerticle {
 
 
     //auth
+    MongoAuthenticationOptions options = new MongoAuthenticationOptions();
     eb.consumer("register.user",msg->{
       JsonObject credentials= (JsonObject) msg.body();
-      MongoAuthenticationOptions options = new MongoAuthenticationOptions().setCollectionName(COLLECTION_USERS);
 
       MongoUserUtil us=MongoUserUtil.create(client,options,null);
       us.createUser(credentials.getString("username"), credentials.getString("password"),res -> {
         if(res.succeeded()){
           System.out.println(res.result());
+          msg.reply(res.result());
         }else {
-          System.out.println(res.cause());
+          msg.fail(403,"Error registering");
         }
       });
       /*MongoAuthentication authenticationProvider =
@@ -292,8 +291,20 @@ public class DbService extends AbstractVerticle {
           System.out.println(userAsyncResult.cause());
         }
       });*/
-      msg.reply("no");
     });
 
+    eb.consumer("login.user",msg-> {
+
+      JsonObject credentials = (JsonObject) msg.body();
+
+      MongoAuthentication authenticationProvider=MongoAuthentication.create(client,options);
+      authenticationProvider.authenticate(credentials)
+        .onSuccess(user -> {
+          msg.reply(user.principal());
+        })
+        .onFailure(err -> {
+          msg.fail(403,err.getMessage());
+        });
+    });
   }
 }
