@@ -1,12 +1,10 @@
 package com.example.starter.verticles;
 
 import io.vertx.core.AbstractVerticle;
-import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.auth.authentication.UsernamePasswordCredentials;
 import io.vertx.ext.auth.mongo.*;
 import io.vertx.ext.mongo.FindOptions;
 import io.vertx.ext.mongo.MongoClient;
@@ -21,7 +19,6 @@ public class DbService extends AbstractVerticle {
     MongoClient client = MongoClient.create(vertx, config);
     final String COLLECTION="projects";
     final String COLLECTION_CLIENTS="clients";
-    final String COLLECTION_USERS="users";
 
     EventBus eb=vertx.eventBus();
     //Project service
@@ -282,15 +279,6 @@ public class DbService extends AbstractVerticle {
           msg.fail(403,"Error registering");
         }
       });
-      /*MongoAuthentication authenticationProvider =
-        MongoAuthentication.create(client, options);
-      authenticationProvider.authenticate(credentials,userAsyncResult -> {
-        if(userAsyncResult.succeeded()){
-          System.out.println(""+userAsyncResult.result().principal());
-        }else {
-          System.out.println(userAsyncResult.cause());
-        }
-      });*/
     });
 
     eb.consumer("login.user",msg-> {
